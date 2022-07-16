@@ -13,10 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      - name: Run a multi-line script
+      - name: Download Image
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          docker pull us-docker.pkg.dev/spinnaker-community/docker/halyard:stable
+          docker login -u ${{ secrets.DOCKERHUB_USER}} -p ${{ secrets.DOCKERHUB_PASSWD}} docker.io
+          docker tag us-docker.pkg.dev/spinnaker-community/docker/halyard:stable docker.io/dsxphdh01/halyard:stable
+          docker push docker.io/dsxphdh01/halyard:stable
+          docker logout
