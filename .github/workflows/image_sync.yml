@@ -32,6 +32,7 @@ jobs:
 
       - name: get bom version file
         run: |
+          mkdir -p ${BOM_DIR}
           python3 scripts/bomversion.py ${SPINNAKER_VERSION}.yml ${TAG_FILE} ${BOM_DIR}
           ls ${BOM_DIR}
           cat ${TAG_FILE}
