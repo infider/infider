@@ -3,7 +3,10 @@ name: spinnaker image sync
 env:
   SPINNAKER_VERSION: 1.27.0
   HALYARD_IMAGE_ADDRESS: us-docker.pkg.dev/spinnaker-community/docker/halyard:stable
-
+  SPINNAKER_IMAGES_URL: "us-docker.pkg.dev/spinnaker-community/docker/"
+  DOCKERHUB_URL: docker.io/dsxphdh01/halyard:stable
+  TAG_FILE: "tagfile.txt"
+  BOM_DIR: ".boms"
 
 on:
   push:
@@ -25,3 +28,9 @@ jobs:
           docker exec -u root halyard sh /opt/getbomconfig.sh ${SPINNAKER_VERSION}
           docker cp halyard:/opt/${SPINNAKER_VERSION}.yml ./${SPINNAKER_VERSION}.yml
           cat ${SPINNAKER_VERSION}.yml
+
+
+      - name: get bom version file
+        run: |
+          python3 scripts/bomversion.py ${SPINNAKER_VERSION}.yml  ${TAG_FILE} ${BOM_DIR}
+          cat ${TAG_FILE}
