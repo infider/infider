@@ -4,7 +4,7 @@ env:
   SPINNAKER_VERSION: 1.27.0
   HALYARD_IMAGE_URL: us-docker.pkg.dev/spinnaker-community/docker/halyard:stable
   SPINNAKER_IMAGES_URL: "us-docker.pkg.dev/spinnaker-community/docker/"
-  DOCKERHUB_URL: docker.io/dsxphdh01/halyard:stable
+  DOCKERHUB_URL: "docker.io/dsxphdh01/"
   TAG_FILE: "tagfile.txt"
   BOM_DIR: ".boms"
 
@@ -17,25 +17,51 @@ jobs:
   build:
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
-      - name: run halyard and get bom
-        run: |
-          docker run -itd -p 8084:8084 -p 9000:9000 --name halyard  ${HALYARD_IMAGE_URL}
-          sleep 3
-          docker cp scripts/getbomconfig.sh halyard:/opt/getbomconfig.sh
-          docker exec -u root halyard chmod +x /opt/getbomconfig.sh
-          docker exec -u root halyard sh /opt/getbomconfig.sh ${SPINNAKER_VERSION}
-          docker cp halyard:/opt/${SPINNAKER_VERSION}.yml ./${SPINNAKER_VERSION}.yml
+    - name: run halyard and get bom
+      run: |
+        docker run -itd -p 8084:8084 -p 9000:9000 --name halyard  ${HALYARD_IMAGE_URL}
+        sleep 3
+        docker cp scripts/getbomconfig.sh halyard:/opt/getbomconfig.sh
+        docker exec -u root halyard chmod +x /opt/getbomconfig.sh
+        docker exec -u root halyard sh /opt/getbomconfig.sh ${SPINNAKER_VERSION}
+        docker cp halyard:/opt/${SPINNAKER_VERSION}.yml ./${SPINNAKER_VERSION}.yml
 
 
-      - name: get bom version file
-        run: |
-          mkdir -p ${BOM_DIR}
-          sed -i '/^services/,/^artifactSources/!d' ${SPINNAKER_VERSION}.yml
-          sed -i '$d' ${SPINNAKER_VERSION}.yml
-          cat ${SPINNAKER_VERSION}.yml
-          python3 scripts/bomversion.py ${SPINNAKER_VERSION}.yml ${TAG_FILE} ${BOM_DIR}
-          ls ${BOM_DIR}
-          cat ${TAG_FILE}
+    - name: Get bom version file
+      run: |
+        mkdir -p ${BOM_DIR}
+        sed -i '/^services/,/^artifactSources/!d' ${SPINNAKER_VERSION}.yml
+        sed -i '$d' ${SPINNAKER_VERSION}.yml
+        cat ${SPINNAKER_VERSION}.yml
+        python3 scripts/bomversion.py ${SPINNAKER_VERSION}.yml ${TAG_FILE} ${BOM_DIR}
+        ls ${BOM_DIR}
+        cat ${TAG_FILE}
 
+
+    - name: Download Image and Upload to DockerHub
+      run: |
+        docker login -u ${{ secrets.DOCKERHUB_USER}} -p ${{ secrets.DOCKERHUB_PASSWD}} docker.io
+        for tag in $(cat ${TAG_FILE})
+        do 
+          echo  -e "\033[32m  ---> pull ---> ${REGISTRY_URL}${tag} \033[0m"
+          docker pull ${SPINNAKER_IMAGES_URL}${tag}
+          echo  -e "\033[32m  ---> pull ---> ${REGISTRY_URL}${tag} \033[0m"
+          docker push ${DOCKERHUB_URL}${tag}
+        done
+
+
+    - name: get bomdir
+      run : |
+        mkdir -p artifacts/${SPINNAKER_VERSION}
+        mv ${TAG_FILE} artifacts/${SPINNAKER_VERSION}/
+        mv ${BOM_DIR} artifacts/${SPINNAKER_VERSION}/
+        mkdir -p artifacts/${SPINNAKER_VERSION}/${BOM_DIR}/bom
+        mv ${SPINNAKER_VERSION}.yml artifacts/${SPINNAKER_VERSION}/${BOM_DIR}/bom/
+
+
+    - uses: actions/upload-artifact@v2
+      with: 
+        name: ${{ env.SPINNAKER_VERSION }}-Install-Scripts
+        path: artifacts/*
