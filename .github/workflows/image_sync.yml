@@ -20,8 +20,8 @@ jobs:
         run: |
           docker run -itd -p 8084:8084 -p 9000:9000 --name halyard  us-docker.pkg.dev/spinnaker-community/docker/halyard:stable
           sleep 3
-          docker cp scripts/getbom.sh halyard:/opt/getbom.sh
-          docker exec -u root halyard chmod +x /opt/getbom.sh
-          docker exec -u root halyard sh /opt/getbom.sh ${SPINNAKER_VERSION}
+          docker cp scripts/getbomconfig.sh halyard:/opt/getbomconfig.sh
+          docker exec -u root halyard chmod +x /opt/getbomconfig.sh
+          docker exec -u root halyard sh /opt/getbomconfig.sh ${SPINNAKER_VERSION}
           docker cp halyard:/opt/${SPINNAKER_VERSION}.yml ./${SPINNAKER_VERSION}.yml
           cat ${SPINNAKER_VERSION}.yml
