@@ -47,7 +47,7 @@ jobs:
         do 
           echo  -e "\033[32m  ---> pull ---> ${REGISTRY_URL}${image_tag} \033[0m"
           docker pull ${SPINNAKER_IMAGES_URL}${image_tag}
-          docker tag ${SPINNAKER_IMAGES_URL}${tag} ${DOCKERHUB_URL}${image_tag}
+          docker tag ${SPINNAKER_IMAGES_URL}${image_tag} ${DOCKERHUB_URL}${image_tag}
           echo  -e "\033[32m  ---> pull ---> ${REGISTRY_URL}${image_tag} \033[0m"
           docker push ${DOCKERHUB_URL}${image_tag}
         done
