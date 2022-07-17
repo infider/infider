@@ -39,4 +39,3 @@ jobs:
           ls ${BOM_DIR}
           cat ${TAG_FILE}
 
-
