@@ -19,7 +19,9 @@ jobs:
       - name: run halyard and get bom
         run: |
           docker run -itd -p 8084:8084 -p 9000:9000 --name halyard  us-docker.pkg.dev/spinnaker-community/docker/halyard:stable
-          docker exec -u root halyard until hal --daemon-endpoint http://127.0.0.1:8064 --ready; do sleep 5 ; done
+          docker exec -u root halyard export DAEMON_ENDPOINT=http://127.0.0.1:8064
+          docker exec -u root halyard export HAL_COMMAND="hal --daemon-endpoint $DAEMON_ENDPOINT"
+          docker exec -u root halyard "until $HAL_COMMAND --ready; do sleep 10 ; done"
           docker exec -u root halyard hal version bom ${SPINNAKER_VERSION} -q -o yaml >/opt/${SPINNAKER_VERSION}.yml
           docker cp halyard:/opt/${SPINNAKER_VERSION}.yml ./${SPINNAKER_VERSION}.yml
           cat ${SPINNAKER_VERSION}.yml
