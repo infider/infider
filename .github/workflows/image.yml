@@ -5,7 +5,7 @@ name: image sync
 on:
   push:
     paths:
-      - '.github/workflows/**'
+      - '.github/workflows/image.yml'
 
 jobs:
   build:

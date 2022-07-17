@@ -1,0 +1,24 @@
+name: spinnaker image sync
+
+env:
+  SPINNAKER_VERSION: 1.27.0
+  HALYARD_IMAGE_ADDRESS: us-docker.pkg.dev/spinnaker-community/docker/halyard:stable
+
+
+on:
+  push:
+    paths:
+      - '.github/workflows/image_sync.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: run halyard and get bom
+        run: |
+          docker run -itd -p 8084:8084 -p 9000:9000 --name halyard  us-docker.pkg.dev/spinnaker-community/docker/halyard:stable
+          docker exec -u root halyard hal version bom ${SPINNAKER_VERSION} -q -o yaml >/opt/${SPINNAKER_VERSION}.yml
+          docker cp halyard:/opt/${SPINNAKER_VERSION}.yml ./${SPINNAKER_VERSION}.yml
+          cat ${SPINNAKER_VERSION}.yml
